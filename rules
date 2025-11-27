@@ -1,0 +1,261 @@
+<group name="authentication, brute_force,">
+  <rule id="100010" level="5">
+    <if_sid>5710</if_sid>
+    <match>Failed password</match>
+    <description>SSH: Failed login attempt</description>
+  </rule>
+
+  <rule id="100011" level="10">
+    <if_matched_sid>100010</if_matched_sid>
+    <frequency>3</frequency>
+    <timeframe>60</timeframe>
+    <same_source_ip>true</same_source_ip>
+    <description>SSH Brute Force detected from same IP</description>
+  </rule>
+</group>
+ 
+<group name="authentication, brute_force, distributed,">
+  <rule id="100020" level="5">
+    <if_sid>5710</if_sid>
+    <match>Failed password</match>
+    <description>SSH: Failed attempt (any IP)</description>
+  </rule>
+
+  <rule id="100021" level="12">
+    <if_matched_sid>100020</if_matched_sid>
+    <frequency>8</frequency>
+    <timeframe>60</timeframe>
+    <same_source_ip>false</same_source_ip>
+    <description>Distributed SSH Brute Force detected (multiple IPs)</description>
+  </rule>
+</group>
+
+<group name="network, suspicious_ip,">
+  <rule id="100030" level="7">
+    <field name="srcip" type="not_in_list">192.168.56.0/24</field>
+    <match>Failed password</match>
+    <description>SSH failure from external or unknown IP</description>
+  </rule>
+</group>
+
+<group name="web, injection, command,">
+  <rule id="100040" level="10">
+    <match>\;|&&|\|\||`|\$\(</match>
+    <description>Possible command injection attempt detected</description>
+  </rule>
+</group>
+ 
+<group name="web, sql_injection,">
+  <rule id="100050" level="12">
+    <regex>\bUNION\b|\bSELECT\b|\bUPDATE\b|\bDROP\b|\bINSERT\b|--|\bOR\b\s+1=1</regex>
+    <description>Possible SQL Injection attempt detected</description>
+  </rule>
+</group>
+<group name="network,nmap,">
+  <rule id="200010" level="7">
+    <match>nmap</match>
+    <description>Nmap scan detected</description>
+  </rule>
+
+  <!-- SYN scan -->
+  <rule id="200011" level="10">
+    <if_sid>200010</if_sid>
+    <regex>SYN Stealth Scan|SYN scan</regex>
+    <description>Nmap SYN scan detected</description>
+  </rule>
+
+  <!-- FIN/XMAS/NULL -->
+  <rule id="200012" level="10">
+    <if_sid>200010</if_sid>
+    <regex>FIN Scan|XMAS Scan|NULL Scan</regex>
+    <description>Nmap stealth scan (FIN/XMAS/NULL)</description>
+  </rule>
+</group>
+<group name="network,slow_portscan,">
+  <rule id="200020" level="8">
+    <match>connect</match>
+    <description>Single connection attempt</description>
+  </rule>
+
+  <rule id="200021" level="12">
+    <if_matched_sid>200020</if_matched_sid>
+    <frequency>10</frequency>
+    <timeframe>120</timeframe>
+    <description>Slow port scan detected (10 ports in 2 min)</description>
+  </rule>
+</group>
+
+<group name="user_changes,">
+  <rule id="200030" level="10">
+    <match>useradd|userdel|groupadd|groupdel|passwd</match>
+    <description>User or group modification detected</description>
+  </rule>
+</group>
+
+<group name="privilege_escalation,">
+  <rule id="200040" level="12">
+    <match>sudo:|su:</match>
+    <description>Sudo or su usage detected</description>
+  </rule>
+
+  <rule id="200041" level="15">
+    <regex>sudo: pam_unix.*authentication failure</regex>
+    <description>Failed sudo attempt (possible privilege escalation)</description>
+  </rule>
+</group>
+
+<group name="dangerous_commands,">
+  <rule id="200050" level="14">
+    <regex>nc -l|nc -lvnp|bash -i|wget http|curl http|/dev/tcp|python -c|perl -e|sh -i</regex>
+    <description>Dangerous command or reverse shell attempt</description>
+  </rule>
+</group>
+
+<group name="malware,">
+  <rule id="200060" level="10">
+    <regex>\.exe$|\.dll$|\.bin$|\.sh$|\.py$|\.php$</regex>
+    <description>Suspicious file created</description>
+  </rule>
+
+  <rule id="200061" level="14">
+    <regex>ELF 64-bit|packed|UPX|invalid header</regex>
+    <description>Possible malware binary detected</description>
+  </rule>
+</group>
+<group name="web_attacks,apache,php,">
+  <!-- RCE -->
+  <rule id="200070" level="12">
+    <regex>exec\(|system\(|shell_exec\(|passthru\(|base64_decode|eval</regex>
+    <description>Possible PHP Remote Code Execution attempt</description>
+  </rule>
+
+  <!-- File inclusion -->
+  <rule id="200071" level="12">
+    <regex>\.\./|\%2e\%2e/|php://input|data://</regex>
+    <description>Possible LFI / File Inclusion attack</description>
+  </rule>
+
+  <!-- Apache exploit scanning -->
+  <rule id="200072" level="8">
+    <match>GET</match>
+    <regex>\.php\?|\?id=|\?cmd=|\?exec=</regex>
+    <description>Suspicious web request</description>
+  </rule>
+</group>
+
+<group name="dos,mysql,">
+  <rule id="200080" level="10">
+    <match>Access denied for user</match>
+    <description>Single MySQL auth failure</description>
+  </rule>
+
+  <rule id="200081" level="15">
+    <if_matched_sid>200080</if_matched_sid>
+    <frequency>100</frequency>
+    <timeframe>10</timeframe>
+    <description>Possible MySQL brute force or DoS attack</description>
+  </rule>
+</group>
+
+
+
+<active-response>
+  <command>firewall-drop</command>
+  <location>local</location>
+  <rules_id>200011,200021,200081</rules_id>
+</active-response>
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>/var/log/mysql/error.log</location>
+</localfile>
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>/var/log/mysql/mariadb.log</location>
+</localfile>
+<group name="mysql,authentication,bruteforce,">
+
+  <!-- 1. Tentative échouée simple -->
+  <rule id="300010" level="5">
+    <regex>Access denied for user|Can't connect to MySQL server</regex>
+    <description>MySQL/MariaDB authentication failure</description>
+  </rule>
+
+  <!-- 2. Brute force depuis la même IP -->
+  <rule id="300011" level="10">
+    <if_matched_sid>300010</if_matched_sid>
+    <frequency>5</frequency>
+    <timeframe>60</timeframe>
+    <same_source_ip>true</same_source_ip>
+    <description>MySQL brute force detected (same IP)</description>
+  </rule>
+
+  <!-- 3. Brute force distribué -->
+  <rule id="300012" level="12">
+    <if_matched_sid>300010</if_matched_sid>
+    <frequency>10</frequency>
+    <timeframe>90</timeframe>
+    <same_source_ip>false</same_source_ip>
+    <description>Distributed MySQL brute force detected (multiple IPs)</description>
+  </rule>
+
+  <!-- 4. Attaque massive -->
+  <rule id="300013" level="15">
+    <if_matched_sid>300010</if_matched_sid>
+    <frequency>100</frequency>
+    <timeframe>10</timeframe>
+    <description>Massive MySQL brute force or DoS on authentication</description>
+  </rule>
+
+</group>
+
+
+<group name="ransomware,fim,">
+
+  <!-- 1. Fichiers renommés avec extension suspecte -->
+  <rule id="400010" level="12">
+    <field name="fim.old_filename">\.(txt|doc|docx|xls|pdf|jpg|png)</field>
+    <field name="fim.new_filename">\.(locked|encrypted|crypt|crypted|enc|aes|xor|wcry|wannacry)$</field>
+    <description>Possible ransomware activity: suspicious file extension change</description>
+  </rule>
+
+  <!-- 2. Création massive de fichiers chiffrés -->
+  <rule id="400011" level="14">
+    <field name="fim.new_filename">\.(locked|encrypted|crypt|enc|aes)$</field>
+    <description>Ransomware file creation detected</description>
+  </rule>
+
+  <rule id="400012" level="15">
+    <if_matched_sid>400011</if_matched_sid>
+    <frequency>20</frequency>
+    <timeframe>30</timeframe>
+    <description>Massive ransomware encryption detected</description>
+  </rule>
+
+  <!-- 3. Modifications rapides de nombreux fichiers -->
+  <rule id="400013" level="14">
+    <match>modified</match>
+    <description>File modification detected</description>
+  </rule>
+
+  <rule id="400014" level="15">
+    <if_matched_sid>400013</if_matched_sid>
+    <frequency>30</frequency>
+    <timeframe>20</timeframe>
+    <description>Possible ransomware: high-volume file changes in short period</description>
+  </rule>
+
+  <!-- 4. Blacklist extension -->
+  <rule id="400015" level="13">
+    <regex>\.(000|aaa|abc|xyz|encrypt|crypt|aes256)$</regex>
+    <description>Suspicious or ransomware-related extension detected</description>
+  </rule>
+
+</group>
+dans le fichier conf /var/ossec/etc/ossec.conf : 
+<active-response>
+  <command>firewall-drop</command>
+  <location>local</location>
+  <rules_id>400011,400012,400014</rules_id>
+</active-response>
