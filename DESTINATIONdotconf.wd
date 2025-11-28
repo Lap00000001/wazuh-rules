@@ -1,0 +1,5 @@
+On the /var/ossec/etc/ossec.conf of the agent : 
+AGENT – ossec.conf
+  
+On the /var/ossec/etc/ossec.conf of the manager : 
+MANAGER – ossec.conf
