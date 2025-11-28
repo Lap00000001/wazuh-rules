@@ -3,3 +3,17 @@ AGENT – ossec.conf
   
 On the /var/ossec/etc/ossec.conf of the manager : 
 MANAGER – ossec.conf
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Petit rappel : 
+pas d'<active responses> dans l'agent a moins qu'en local
+l'agent doit determiner les cible ou collecter les logs
+C’est uniquement dans le manager que tu mets les <active-response>
+dans le fichier MANAGER ne pas oublier d'affiner :
+Port scan → règles 200011, 200021, 200081
+Brute-force MySQL → règles 400011, 400012, 400014
+Brute-force SSH / système → règles 300011, 300013
+
+ne pas oublier de 
+sudo systemctl restart wazuh-agent
+ou                     wazuh manarder
