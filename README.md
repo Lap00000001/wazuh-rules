@@ -1,4 +1,4 @@
-_______________________________________READ DESTINATIONdotconf.wd_______________________________________________
+_______________________________________READ DESTINATIONdotconf.wd_______________________________________
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 There are some rules for a wazuh monitoring and EDR installation in your network, i have been help by ChatGPT, i hope it will be usefull
