@@ -1,3 +1,6 @@
+_______________________________________READ DESTINATIONdotconf.wd_______________________________________________
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 There are some rules for a wazuh monitoring and EDR installation in your network, i have been help by ChatGPT, i hope it will be usefull
 
 the rules needs to be add in the 
@@ -46,3 +49,17 @@ WAZUH_MANAGER="10.0.0.2" apt-get install wazuh-agent
 For additional deployment options such as agent name, agent group, and enrollment password, see the Deployment variables for Linux section.
 
 obviously the IP and the key are depending of your configuration and should be upgraded !
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Petit rappel : 
+pas d'<active responses> dans l'agent a moins qu'en local
+l'agent doit determiner les cible ou collecter les logs
+C’est uniquement dans le manager que tu mets les <active-response>
+dans le fichier MANAGER ne pas oublier d'affiner :
+Port scan → règles 200011, 200021, 200081
+Brute-force MySQL → règles 400011, 400012, 400014
+Brute-force SSH / système → règles 300011, 300013
+
+ne pas oublier de 
+sudo systemctl restart wazuh-agent
+ou                     wazuh manarder
