@@ -1,6 +1,8 @@
 On the /var/ossec/etc/ossec.conf of the agent : 
-AGENT – ossec.conf
+AGENT_ossec.conf
   
 On the /var/ossec/etc/ossec.conf of the manager : 
-MANAGER – ossec.conf
+MANAGER_ossec.conf
 
+On the /var/ossec/etc/rules/local_rules.xml of the manager :
+local_rules.xml
