@@ -1,3 +1,4 @@
+#/var/ossec/etc/rules/local_rules.xml sur le manageur
 <group name="authentication, brute_force,">
   <rule id="100010" level="5">
     <if_sid>5710</if_sid>
